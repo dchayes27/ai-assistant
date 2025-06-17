@@ -1,0 +1,59 @@
+[Unit]
+Description=AI Assistant - Web GUI Interface
+Documentation=https://github.com/your-org/ai-assistant
+After=network.target ai-assistant-api.service
+Wants=ai-assistant-api.service
+PartOf=ai-assistant.service
+
+[Service]
+Type=simple
+User=ai-assistant
+Group=ai-assistant
+WorkingDirectory=/opt/ai-assistant
+ExecStartPre=/bin/bash -c 'source /opt/ai-assistant/venv/bin/activate'
+ExecStart=/opt/ai-assistant/venv/bin/python gui/interface.py --port 7860 --server-name 0.0.0.0
+ExecStop=/bin/kill -TERM $MAINPID
+Restart=always
+RestartSec=5
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# Environment
+Environment=AI_ASSISTANT_ENV=production
+Environment=PATH=/opt/ai-assistant/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONPATH=/opt/ai-assistant
+Environment=HOME=/opt/ai-assistant
+Environment=GRADIO_SERVER_NAME=0.0.0.0
+Environment=GRADIO_SERVER_PORT=7860
+
+# Health check
+ExecStartPost=/bin/bash -c 'sleep 15 && curl -f http://localhost:7860 || exit 1'
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ai-assistant/data /opt/ai-assistant/logs /opt/ai-assistant/temp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictNamespaces=true
+
+# Resource limits
+LimitNOFILE=8192
+LimitNPROC=512
+MemoryMax=512M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-assistant-gui
+
+[Install]
+WantedBy=ai-assistant.service

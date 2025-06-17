@@ -1,0 +1,81 @@
+# Development Environment Configuration
+# Overrides for development environment
+
+app:
+  debug: true
+  log_level: "DEBUG"
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  reload: true
+  workers: 1
+  cors_origins: 
+    - "http://localhost:3000"
+    - "http://localhost:3001"
+    - "http://localhost:8080"
+    - "http://127.0.0.1:3000"
+    - "http://127.0.0.1:8080"
+
+database:
+  path: "data/dev_assistant.db"
+  pool_size: 3
+  backup_interval: 7200  # 2 hours in development
+
+llm:
+  base_url: "http://localhost:11434"
+  timeout: 60  # Longer timeout for development
+  max_tokens: 1024  # Smaller for faster responses
+  temperature: 0.8
+  retry_attempts: 2
+
+tts:
+  provider: "pyttsx3"  # Faster fallback for development
+  pyttsx3:
+    rate: 200  # Faster speech for development
+
+stt:
+  model: "tiny"  # Faster model for development
+  device: "cpu"
+
+gui:
+  debug: true
+  share: false
+  show_api: true
+  port: 7860
+
+security:
+  enable_auth: false
+  cors_enabled: true
+  https_only: false
+  rate_limit: 1000  # Higher limit for development
+
+monitoring:
+  enable_metrics: true
+  log_requests: true
+  performance_tracking: true
+
+features:
+  voice_input: true
+  voice_output: true
+  file_upload: true
+  conversation_export: true
+  multi_user: false
+  plugins: true  # Enable plugins in development
+  api_access: true
+
+performance:
+  max_memory_usage: "1GB"  # Lower limit for development
+  cpu_limit: 70
+  request_timeout: 120
+
+cache:
+  enabled: true
+  type: "memory"
+  ttl: 1800  # 30 minutes
+  max_size: "50MB"
+
+backup:
+  enabled: true
+  interval: 3600  # 1 hour
+  retention_days: 7

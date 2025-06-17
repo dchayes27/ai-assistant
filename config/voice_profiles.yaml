@@ -1,0 +1,229 @@
+# Voice Profiles Configuration
+# Different TTS voice configurations and profiles
+
+default_profile: "sarah"
+
+profiles:
+  sarah:
+    name: "Sarah"
+    description: "Friendly female voice, good for general conversation"
+    provider: "coqui"
+    model: "tts_models/en/ljspeech/tacotron2-DDC"
+    vocoder: "vocoder_models/en/ljspeech/hifigan_v2"
+    settings:
+      rate: 1.0
+      pitch: 1.0
+      volume: 0.8
+      emotion: "neutral"
+    sample_rate: 22050
+    recommended_for: ["chat", "learning", "general"]
+    
+  alex:
+    name: "Alex"
+    description: "Professional male voice, ideal for presentations"
+    provider: "coqui"
+    model: "tts_models/en/vctk/vits"
+    speaker_id: "p225"  # Male speaker
+    settings:
+      rate: 0.9
+      pitch: 0.9
+      volume: 0.9
+      emotion: "professional"
+    sample_rate: 22050
+    recommended_for: ["project", "research", "formal"]
+    
+  emma:
+    name: "Emma"
+    description: "Warm teacher voice, perfect for educational content"
+    provider: "coqui"
+    model: "tts_models/en/ljspeech/glow-tts"
+    settings:
+      rate: 0.85
+      pitch: 1.1
+      volume: 0.85
+      emotion: "warm"
+    sample_rate: 22050
+    recommended_for: ["learning", "tutorial", "explanation"]
+    
+  marcus:
+    name: "Marcus"
+    description: "Clear technical voice, great for debugging and coding"
+    provider: "coqui"
+    model: "tts_models/en/vctk/vits"
+    speaker_id: "p226"  # Male speaker with clear diction
+    settings:
+      rate: 0.8
+      pitch: 0.85
+      volume: 0.9
+      emotion: "focused"
+    sample_rate: 22050
+    recommended_for: ["debug", "coding", "technical"]
+    
+  zoe:
+    name: "Zoe"
+    description: "Enthusiastic voice, energetic and engaging"
+    provider: "coqui"
+    model: "tts_models/en/vctk/vits"
+    speaker_id: "p227"  # Female speaker
+    settings:
+      rate: 1.1
+      pitch: 1.2
+      volume: 0.9
+      emotion: "enthusiastic"
+    sample_rate: 22050
+    recommended_for: ["motivation", "brainstorming", "creative"]
+
+# Fallback profiles using pyttsx3 (cross-platform compatibility)
+fallback_profiles:
+  system_default:
+    name: "System Default"
+    description: "Default system voice"
+    provider: "pyttsx3"
+    voice_id: 0
+    settings:
+      rate: 180
+      volume: 0.9
+      pitch: 50
+    recommended_for: ["fallback", "basic"]
+    
+  system_female:
+    name: "System Female"
+    description: "System female voice (if available)"
+    provider: "pyttsx3"
+    voice_id: 1
+    settings:
+      rate: 170
+      volume: 0.85
+      pitch: 55
+    recommended_for: ["fallback", "general"]
+    
+  system_male:
+    name: "System Male"
+    description: "System male voice (if available)"
+    provider: "pyttsx3"
+    voice_id: 2
+    settings:
+      rate: 160
+      volume: 0.9
+      pitch: 45
+    recommended_for: ["fallback", "formal"]
+
+# Voice customization by conversation mode
+mode_voice_mapping:
+  chat: "sarah"
+  project: "alex"
+  learning: "emma"
+  research: "alex"
+  debug: "marcus"
+  creative: "zoe"
+  
+# Time-based voice selection (optional)
+time_based_voices:
+  morning: "emma"      # 6-12
+  afternoon: "sarah"   # 12-18
+  evening: "alex"      # 18-22
+  night: "marcus"      # 22-6
+
+# Language-specific voice profiles
+language_voices:
+  en:
+    default: "sarah"
+    formal: "alex"
+    casual: "zoe"
+  es:
+    default: "tts_models/es/mai/tacotron2-DDC"
+    formal: "tts_models/es/css10/vits"
+  fr:
+    default: "tts_models/fr/mai/tacotron2-DDC"
+  de:
+    default: "tts_models/de/thorsten/tacotron2-DDC"
+
+# Voice quality settings
+quality_presets:
+  low:
+    sample_rate: 16000
+    vocoder_quality: "low"
+    inference_speed: "fast"
+    use_gpu: false
+    
+  medium:
+    sample_rate: 22050
+    vocoder_quality: "medium"
+    inference_speed: "medium"
+    use_gpu: false
+    
+  high:
+    sample_rate: 22050
+    vocoder_quality: "high"
+    inference_speed: "slow"
+    use_gpu: true
+    
+  ultra:
+    sample_rate: 44100
+    vocoder_quality: "ultra"
+    inference_speed: "ultra_slow"
+    use_gpu: true
+
+# Emotion and style presets
+emotion_presets:
+  neutral:
+    pitch_modifier: 1.0
+    rate_modifier: 1.0
+    volume_modifier: 1.0
+    
+  happy:
+    pitch_modifier: 1.15
+    rate_modifier: 1.1
+    volume_modifier: 1.05
+    
+  calm:
+    pitch_modifier: 0.95
+    rate_modifier: 0.9
+    volume_modifier: 0.9
+    
+  excited:
+    pitch_modifier: 1.25
+    rate_modifier: 1.2
+    volume_modifier: 1.1
+    
+  serious:
+    pitch_modifier: 0.9
+    rate_modifier: 0.85
+    volume_modifier: 0.95
+    
+  whisper:
+    pitch_modifier: 0.8
+    rate_modifier: 0.7
+    volume_modifier: 0.6
+
+# Voice cloning settings (advanced)
+voice_cloning:
+  enabled: false
+  reference_audio_path: null
+  clone_model: "tts_models/multilingual/multi-dataset/your_tts"
+  speaker_embedding_path: null
+  
+# Audio post-processing
+post_processing:
+  noise_reduction: true
+  normalization: true
+  fade_in: 0.1   # seconds
+  fade_out: 0.1  # seconds
+  silence_removal: true
+  
+# Performance settings per profile
+performance_settings:
+  sarah:
+    chunk_size: 1024
+    overlap: 0.1
+    parallel_synthesis: true
+    
+  alex:
+    chunk_size: 2048
+    overlap: 0.15
+    parallel_synthesis: true
+    
+  emma:
+    chunk_size: 1536
+    overlap: 0.12
+    parallel_synthesis: true

@@ -1,0 +1,19 @@
+[Unit]
+Description=AI Assistant - Daily Backup Timer
+Documentation=https://github.com/your-org/ai-assistant
+Requires=ai-assistant-backup.service
+
+[Timer]
+# Run daily at 2:30 AM
+OnCalendar=*-*-* 02:30:00
+# Also run 15 minutes after boot
+OnBootSec=15min
+# If the system was powered down during backup time, run backup on next boot
+Persistent=true
+# Random delay to avoid system load spikes
+RandomizedDelaySec=300
+# Accuracy window
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

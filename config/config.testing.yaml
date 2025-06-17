@@ -1,0 +1,108 @@
+# Testing Environment Configuration
+# Optimized settings for running tests
+
+app:
+  debug: true
+  log_level: "DEBUG"
+  temp_dir: "temp/test"
+
+server:
+  host: "127.0.0.1"
+  port: 8001  # Different port for testing
+  reload: false
+  workers: 1
+  timeout: 10  # Short timeout for tests
+
+database:
+  type: "sqlite"
+  path: ":memory:"  # In-memory database for tests
+  pool_size: 1
+  backup_interval: 999999  # Disable backups during tests
+  enable_fts: true
+
+vector_store:
+  enabled: false  # Disable for faster tests
+
+llm:
+  provider: "mock"  # Use mock provider for tests
+  base_url: "http://localhost:11434"
+  default_model: "test-model"
+  timeout: 5
+  max_tokens: 100
+  temperature: 0.0  # Deterministic for testing
+  retry_attempts: 1
+  retry_delay: 0.1
+
+tts:
+  provider: "mock"  # Use mock TTS for tests
+  output_format: "wav"
+  sample_rate: 16000
+
+stt:
+  provider: "mock"  # Use mock STT for tests
+  model: "test"
+  language: "en"
+  device: "cpu"
+
+audio:
+  sample_rate: 16000
+  chunk_size: 512  # Smaller chunks for tests
+  channels: 1
+
+memory:
+  conversation_context_limit: 5  # Smaller for tests
+  summarization_threshold: 10
+  max_conversation_length: 50
+  enable_auto_summarization: false  # Disable for predictable tests
+
+gui:
+  debug: true
+  share: false
+  show_api: true
+  port: 7861  # Different port
+
+security:
+  enable_auth: false
+  cors_enabled: true
+  https_only: false
+  rate_limit: 10000  # No rate limiting in tests
+
+monitoring:
+  enable_metrics: false
+  log_requests: false
+  performance_tracking: false
+  error_reporting: false
+
+features:
+  voice_input: false  # Disable audio features for tests
+  voice_output: false
+  file_upload: false
+  conversation_export: true
+  multi_user: false
+  plugins: false
+  api_access: true
+
+performance:
+  max_memory_usage: "512MB"
+  cpu_limit: 90
+  request_timeout: 10
+
+cache:
+  enabled: false  # Disable caching for predictable tests
+
+backup:
+  enabled: false  # No backups during tests
+
+# Test-specific configurations
+test:
+  mock_external_services: true
+  deterministic_responses: true
+  cleanup_after_tests: true
+  parallel_execution: false
+  fixtures_path: "tests/fixtures"
+  
+# Logging for tests
+logging:
+  level: "WARNING"  # Reduce log noise during tests
+  output: "console"
+  format: "simple"

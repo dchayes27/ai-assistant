@@ -1,0 +1,127 @@
+# Production Environment Configuration
+# Optimized settings for production deployment
+
+app:
+  debug: false
+  log_level: "INFO"
+  max_concurrent_requests: 50
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  reload: false
+  workers: 4  # Multiple workers for production
+  cors_origins: 
+    - "https://yourdomain.com"
+    - "https://www.yourdomain.com"
+  timeout: 30
+
+database:
+  path: "data/production_assistant.db"
+  pool_size: 10
+  pool_recycle: 1800
+  backup_interval: 3600  # 1 hour
+  backup_retention: 30   # 30 days
+
+llm:
+  base_url: "http://localhost:11434"
+  timeout: 30
+  max_tokens: 2048
+  temperature: 0.7
+  retry_attempts: 3
+  retry_delay: 2.0
+
+tts:
+  provider: "coqui"
+  coqui:
+    device: "cpu"  # Use GPU if available
+  pyttsx3:
+    rate: 180
+
+stt:
+  model: "base"  # Better quality for production
+  device: "cpu"
+  compute_type: "int8"
+
+gui:
+  debug: false
+  share: false
+  show_api: false
+  port: 7860
+  auth: "basic"  # Enable authentication
+
+security:
+  enable_auth: true
+  api_key: null  # Set via environment variable
+  jwt_secret: null  # Set via environment variable
+  jwt_expiry: 1800  # 30 minutes
+  rate_limit: 100
+  cors_enabled: true
+  https_only: true
+
+monitoring:
+  enable_metrics: true
+  metrics_port: 8001
+  log_requests: true
+  performance_tracking: true
+  error_reporting: true
+  health_check_interval: 30
+
+features:
+  voice_input: true
+  voice_output: true
+  file_upload: false  # Disable file upload in production for security
+  conversation_export: true
+  multi_user: true
+  plugins: false  # Disable plugins in production
+  api_access: true
+
+performance:
+  max_memory_usage: "4GB"
+  cpu_limit: 80
+  request_timeout: 60
+  connection_timeout: 10
+  keep_alive_timeout: 5
+
+cache:
+  enabled: true
+  type: "redis"  # Use Redis for production
+  ttl: 3600
+  max_size: "500MB"
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+    password: null  # Set via environment variable
+
+backup:
+  enabled: true
+  interval: 3600   # 1 hour
+  retention_days: 90
+  compression: true
+
+# Production-specific logging
+logging:
+  level: "INFO"
+  format: "json"
+  output: "file"
+  file_path: "logs/assistant.log"
+  rotation: "daily"
+  retention: 30
+  max_size: "100MB"
+
+# SSL/TLS Configuration
+ssl:
+  enabled: true
+  cert_file: "/path/to/cert.pem"
+  key_file: "/path/to/key.pem"
+  ca_bundle: "/path/to/ca-bundle.pem"
+
+# Production health checks
+health_checks:
+  database: true
+  llm_service: true
+  tts_service: true
+  stt_service: true
+  memory_usage: true
+  disk_space: true

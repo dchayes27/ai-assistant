@@ -1,0 +1,21 @@
+# Ultra-minimal setup - ~500MB instead of 2.4GB
+# Removes: Whisper, TTS, heavy ML packages
+
+# Core Web Framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+
+# GUI
+gradio==5.8.0
+
+# Database
+sqlalchemy==2.0.36
+
+# Essential Utils
+httpx>=0.27.0,<0.28.0
+python-dotenv==1.0.1
+loguru==0.7.3
+
+# Use system TTS instead of models
+# Use external Whisper API instead of local model

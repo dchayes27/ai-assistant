@@ -1,0 +1,54 @@
+[Unit]
+Description=AI Assistant - Ollama LLM Service
+Documentation=https://ollama.ai/
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ai-assistant
+Group=ai-assistant
+WorkingDirectory=/opt/ai-assistant
+ExecStart=/usr/local/bin/ollama serve
+ExecStop=/bin/kill -TERM $MAINPID
+Restart=always
+RestartSec=5
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# Environment
+Environment=OLLAMA_HOST=0.0.0.0:11434
+Environment=OLLAMA_MODELS=/opt/ai-assistant/models/ollama
+Environment=OLLAMA_LOGS=/opt/ai-assistant/logs
+Environment=HOME=/opt/ai-assistant
+
+# Create directories
+ExecStartPre=/bin/bash -c 'mkdir -p /opt/ai-assistant/models/ollama /opt/ai-assistant/logs'
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ai-assistant/models /opt/ai-assistant/logs /opt/ai-assistant/temp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictNamespaces=true
+
+# Resource limits
+LimitNOFILE=32768
+LimitNPROC=2048
+MemoryMax=2G
+CPUQuota=200%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-assistant-ollama
+
+[Install]
+WantedBy=multi-user.target

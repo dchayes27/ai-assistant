@@ -1,0 +1,60 @@
+# Core AI and ML
+ollama==0.4.4
+openai-whisper==20240930
+transformers==4.46.3
+torch==2.5.1
+torchaudio==2.5.1
+
+# Text-to-Speech
+pyttsx3==2.98
+edge-tts==6.1.18
+gtts==2.5.4
+
+# Web Framework and API
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+python-multipart==0.0.18
+
+# GUI
+gradio==5.8.0
+
+# Database and Storage
+sqlalchemy==2.0.36
+alembic==1.14.0
+sqlite-vec==0.1.6
+chromadb==0.5.23
+
+# Audio Processing
+pyaudio==0.2.14
+sounddevice==0.5.1
+scipy==1.14.1
+numpy==1.26.4
+librosa==0.10.2
+
+# MCP and Tools
+mcp==1.9.4
+httpx>=0.27.0,<0.28.0
+websockets==14.1
+
+# Utilities
+python-dotenv==1.0.1
+pyyaml==6.0.2
+click==8.1.8
+rich==13.9.4
+loguru==0.7.3
+schedule==1.2.2
+PyJWT==2.10.1
+passlib[bcrypt]==1.7.4
+
+# Development
+pytest==8.3.4
+pytest-asyncio==0.25.0
+black==24.10.0
+flake8==7.1.1
+mypy==1.13.0
+pre-commit==4.0.1
+
+# Optional Performance
+accelerate==1.2.1
+optimum==1.24.0

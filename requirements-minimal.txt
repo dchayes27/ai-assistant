@@ -1,0 +1,30 @@
+# Core AI and ML - Only essentials
+ollama==0.4.4
+openai-whisper==20240930
+torch==2.5.1  # Large but needed for Whisper
+
+# TTS - Choose ONE instead of multiple
+TTS  # Coqui TTS (better quality than pyttsx3)
+
+# Web Framework 
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+
+# GUI
+gradio==5.8.0
+
+# Database - Simplified
+sqlalchemy==2.0.36
+
+# Audio Processing - Minimal
+numpy==1.26.4
+scipy==1.14.1
+
+# MCP and Tools
+httpx>=0.27.0,<0.28.0
+
+# Essential Utilities
+python-dotenv==1.0.1
+loguru==0.7.3
+PyJWT==2.10.1

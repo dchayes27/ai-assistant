@@ -1,0 +1,56 @@
+[Unit]
+Description=AI Assistant - Complete AI Assistant Service
+Documentation=https://github.com/your-org/ai-assistant
+After=network.target network-online.target
+Wants=network-online.target
+Requires=ai-assistant-ollama.service
+
+[Service]
+Type=forking
+User=ai-assistant
+Group=ai-assistant
+WorkingDirectory=/opt/ai-assistant
+ExecStartPre=/bin/bash -c 'mkdir -p /opt/ai-assistant/logs /opt/ai-assistant/run'
+ExecStart=/opt/ai-assistant/scripts/start_all.sh --skip-health --no-browser
+ExecStop=/opt/ai-assistant/scripts/stop_all.sh --quiet
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+TimeoutStartSec=300
+TimeoutStopSec=120
+
+# Environment
+Environment=AI_ASSISTANT_ENV=production
+Environment=AI_ASSISTANT_NO_BROWSER=1
+Environment=PATH=/opt/ai-assistant/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONPATH=/opt/ai-assistant
+Environment=HOME=/opt/ai-assistant
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ai-assistant/data /opt/ai-assistant/logs /opt/ai-assistant/run /opt/ai-assistant/temp /opt/ai-assistant/backups
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictNamespaces=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryMax=4G
+CPUQuota=400%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-assistant
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,244 @@
+# AI Assistant Configuration
+# Main configuration file for all components
+
+# Application Settings
+app:
+  name: "AI Assistant"
+  version: "1.0.0"
+  debug: false
+  log_level: "INFO"
+  temp_dir: "temp"
+  max_concurrent_requests: 10
+
+# Server Configuration
+server:
+  host: "localhost"
+  port: 8000
+  reload: false
+  workers: 1
+  cors_origins: ["http://localhost:3000", "http://localhost:8080"]
+  api_prefix: "/api/v1"
+  timeout: 30
+
+# Database Configuration
+database:
+  type: "sqlite"
+  path: "data/assistant.db"
+  pool_size: 5
+  pool_recycle: 3600
+  backup_interval: 3600  # seconds
+  backup_retention: 7    # days
+  enable_fts: true
+  fts_tokenizer: "unicode61"
+
+# Vector Store Configuration
+vector_store:
+  enabled: true
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  dimension: 384
+  similarity_threshold: 0.7
+  max_results: 100
+  cache_size: 1000
+
+# LLM Configuration
+llm:
+  provider: "ollama"
+  base_url: "http://localhost:11434"
+  default_model: "llama3.2:latest"
+  timeout: 30
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 0.9
+  stream: true
+  retry_attempts: 3
+  retry_delay: 1.0
+
+# Available Models
+models:
+  chat:
+    - name: "llama3.2:latest"
+      display_name: "Llama 3.2"
+      context_length: 4096
+      recommended: true
+    - name: "mistral:latest"
+      display_name: "Mistral"
+      context_length: 8192
+      recommended: false
+    - name: "codellama:latest"
+      display_name: "Code Llama"
+      context_length: 4096
+      recommended: false
+  
+  embedding:
+    - name: "nomic-embed-text"
+      display_name: "Nomic Embed"
+      dimension: 768
+      recommended: true
+    - name: "all-minilm"
+      display_name: "All MiniLM"
+      dimension: 384
+      recommended: false
+
+# Speech-to-Text Configuration
+stt:
+  provider: "whisper"
+  model: "base"
+  language: "en"
+  temperature: 0.0
+  device: "cpu"
+  compute_type: "int8"
+  beam_size: 5
+  vad_filter: true
+  vad_threshold: 0.5
+
+# Text-to-Speech Configuration
+tts:
+  provider: "coqui"
+  fallback_provider: "pyttsx3"
+  output_format: "wav"
+  sample_rate: 22050
+  
+  # Coqui TTS Settings
+  coqui:
+    model: "tts_models/en/ljspeech/tacotron2-DDC"
+    vocoder: "vocoder_models/en/ljspeech/hifigan_v2"
+    device: "cpu"
+    
+  # pyttsx3 Settings (fallback)
+  pyttsx3:
+    rate: 180
+    volume: 0.9
+    voice_id: 0
+
+# Audio Configuration
+audio:
+  input_device: null  # null for default
+  output_device: null # null for default
+  sample_rate: 16000
+  chunk_size: 1024
+  channels: 1
+  format: "int16"
+  silence_threshold: 500
+  silence_duration: 2.0
+
+# Memory Configuration
+memory:
+  conversation_context_limit: 20
+  summarization_threshold: 50
+  max_conversation_length: 1000
+  context_window_overlap: 5
+  enable_auto_summarization: true
+  summarization_model: "llama3.2:latest"
+
+# GUI Configuration
+gui:
+  title: "AI Assistant"
+  theme: "default"
+  dark_mode: false
+  port: 7860
+  share: false
+  debug: false
+  show_api: true
+  auth: null
+  
+  # Interface Settings
+  interface:
+    max_message_length: 4000
+    auto_scroll: true
+    show_timestamps: true
+    enable_markdown: true
+    code_theme: "github"
+
+# Conversation Modes
+conversation_modes:
+  chat:
+    name: "Chat"
+    description: "General conversation and Q&A"
+    system_prompt: "default_chat"
+    max_turns: 100
+    
+  project:
+    name: "Project"
+    description: "Project planning and management"
+    system_prompt: "project_manager"
+    max_turns: 200
+    
+  learning:
+    name: "Learning"
+    description: "Educational conversations and tutoring"
+    system_prompt: "tutor"
+    max_turns: 150
+    
+  research:
+    name: "Research"
+    description: "Research assistance and analysis"
+    system_prompt: "researcher"
+    max_turns: 100
+    
+  debug:
+    name: "Debug"
+    description: "Technical debugging and troubleshooting"
+    system_prompt: "debugger"
+    max_turns: 50
+
+# Security Configuration
+security:
+  enable_auth: false
+  api_key: null
+  jwt_secret: "your-jwt-secret-here"
+  jwt_expiry: 3600
+  rate_limit: 100  # requests per minute
+  cors_enabled: true
+  https_only: false
+
+# Monitoring and Metrics
+monitoring:
+  enable_metrics: true
+  metrics_port: 8001
+  log_requests: true
+  performance_tracking: true
+  error_reporting: true
+  health_check_interval: 30
+
+# Feature Flags
+features:
+  voice_input: true
+  voice_output: true
+  file_upload: true
+  conversation_export: true
+  multi_user: false
+  plugins: false
+  api_access: true
+
+# Performance Settings
+performance:
+  max_memory_usage: "2GB"
+  cpu_limit: 80  # percentage
+  request_timeout: 60
+  connection_timeout: 10
+  keep_alive_timeout: 5
+  
+# Cache Configuration
+cache:
+  enabled: true
+  type: "memory"  # memory, redis, file
+  ttl: 3600      # seconds
+  max_size: "100MB"
+  
+  # Redis settings (if type is redis)
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+    password: null
+
+# Backup Configuration
+backup:
+  enabled: true
+  interval: 86400  # seconds (daily)
+  retention_days: 30
+  compression: true
+  exclude_patterns:
+    - "*.log"
+    - "*.tmp"
+    - "__pycache__"

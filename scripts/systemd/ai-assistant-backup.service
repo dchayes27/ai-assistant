@@ -1,0 +1,45 @@
+[Unit]
+Description=AI Assistant - Backup Service (One-shot)
+Documentation=https://github.com/your-org/ai-assistant
+After=ai-assistant.service
+
+[Service]
+Type=oneshot
+User=ai-assistant
+Group=ai-assistant
+WorkingDirectory=/opt/ai-assistant
+ExecStart=/opt/ai-assistant/scripts/backup.sh --quick --no-compression
+TimeoutStartSec=1800
+RemainAfterExit=no
+
+# Environment
+Environment=AI_ASSISTANT_ENV=production
+Environment=PATH=/opt/ai-assistant/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=HOME=/opt/ai-assistant
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ai-assistant/data /opt/ai-assistant/logs /opt/ai-assistant/backups
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+# Resource limits
+LimitNOFILE=4096
+LimitNPROC=256
+MemoryMax=256M
+CPUQuota=25%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-assistant-backup
+
+[Install]
+WantedBy=multi-user.target

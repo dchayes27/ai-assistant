@@ -1,0 +1,64 @@
+[Unit]
+Description=AI Assistant - API Server
+Documentation=https://github.com/your-org/ai-assistant
+After=network.target ai-assistant-ollama.service
+Wants=ai-assistant-ollama.service
+PartOf=ai-assistant.service
+
+[Service]
+Type=simple
+User=ai-assistant
+Group=ai-assistant
+WorkingDirectory=/opt/ai-assistant
+ExecStartPre=/bin/bash -c 'source /opt/ai-assistant/venv/bin/activate'
+ExecStart=/opt/ai-assistant/venv/bin/python -m uvicorn mcp_server.main:app --host 0.0.0.0 --port 8000 --workers 2
+ExecStop=/bin/kill -TERM $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# Environment
+Environment=AI_ASSISTANT_ENV=production
+Environment=PATH=/opt/ai-assistant/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONPATH=/opt/ai-assistant
+Environment=HOME=/opt/ai-assistant
+
+# Health check
+ExecStartPost=/bin/bash -c 'sleep 10 && curl -f http://localhost:8000/health || exit 1'
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ai-assistant/data /opt/ai-assistant/logs /opt/ai-assistant/temp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictNamespaces=true
+
+# Network security
+IPAddressDeny=any
+IPAddressAllow=localhost
+IPAddressAllow=127.0.0.1
+IPAddressAllow=::1
+
+# Resource limits
+LimitNOFILE=16384
+LimitNPROC=1024
+MemoryMax=1G
+CPUQuota=100%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-assistant-api
+
+[Install]
+WantedBy=ai-assistant.service
