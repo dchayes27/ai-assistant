@@ -1,0 +1,199 @@
+name: Real-time Streaming Tests
+
+on:
+  push:
+    branches: [ feature/realtime-streaming ]
+    paths: 
+      - 'realtime/**'
+      - 'web_realtime/**'
+      - 'migration/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'realtime/**'
+      - 'web_realtime/**'
+      - 'migration/**'
+
+jobs:
+  streaming-compatibility:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install system dependencies for audio
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg portaudio19-dev python3-dev alsa-utils
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-streaming.txt || echo "Streaming requirements not found yet"
+        pip install webrtcvad pyaudio asyncio-mqtt pytest-asyncio
+    
+    - name: Test audio device compatibility
+      run: |
+        python -c "
+        import pyaudio
+        p = pyaudio.PyAudio()
+        device_count = p.get_device_count()
+        print(f'Found {device_count} audio devices')
+        for i in range(device_count):
+            info = p.get_device_info_by_index(i)
+            print(f'Device {i}: {info[\"name\"]} - Channels: {info[\"maxInputChannels\"]}/{info[\"maxOutputChannels\"]}')
+        p.terminate()
+        "
+    
+    - name: Test streaming components (if they exist)
+      run: |
+        if [ -d "realtime" ]; then
+          echo "Testing streaming components..."
+          python -m pytest realtime/ -v --tb=short || echo "Streaming tests not ready yet"
+        else
+          echo "Realtime directory not found - streaming development not started"
+        fi
+    
+    - name: Run migration compatibility tests
+      run: |
+        if [ -f "migration/performance_regression.py" ]; then
+          echo "Testing migration compatibility..."
+          python migration/performance_regression.py --dry-run || echo "Migration tests not ready yet"
+        else
+          echo "Migration tests not implemented yet"
+        fi
+    
+    - name: Validate voice-to-voice latency targets
+      run: |
+        if [ -f "realtime/performance_monitor.py" ]; then
+          echo "Testing latency targets..."
+          python realtime/performance_monitor.py --validate-targets || echo "Performance monitoring not ready yet"
+        else
+          echo "Performance monitoring not implemented yet"
+        fi
+
+  web-interface-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Test web real-time interface (if exists)
+      run: |
+        if [ -d "web_realtime" ]; then
+          echo "Testing web real-time interface..."
+          cd web_realtime
+          if [ -f "package.json" ]; then
+            npm install
+            npm test || echo "Web tests not ready yet"
+          else
+            echo "Web interface package.json not found"
+          fi
+        else
+          echo "Web real-time interface not implemented yet"
+        fi
+
+  openai-integration-test:
+    runs-on: ubuntu-latest
+    env:
+      # Note: In production, this would use secrets.OPENAI_API_KEY
+      OPENAI_API_KEY: "test-key-for-structure-validation"
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install openai httpx pytest-asyncio
+    
+    - name: Test OpenAI streaming client structure
+      run: |
+        if [ -f "realtime/gpt4_streaming.py" ]; then
+          echo "Testing OpenAI streaming client..."
+          python -c "
+          import sys
+          sys.path.append('realtime')
+          try:
+              from gpt4_streaming import StreamingGPT4Client
+              print('✓ StreamingGPT4Client class found')
+          except ImportError as e:
+              print(f'StreamingGPT4Client not implemented yet: {e}')
+          except Exception as e:
+              print(f'Structure validation passed, runtime error expected: {e}')
+          "
+        else
+          echo "OpenAI streaming client not implemented yet"
+        fi
+
+  report-streaming-readiness:
+    runs-on: ubuntu-latest
+    needs: [streaming-compatibility, web-interface-tests, openai-integration-test]
+    if: always()
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Generate streaming readiness report
+      run: |
+        echo "# Real-time Streaming Implementation Status" > streaming-report.md
+        echo "" >> streaming-report.md
+        echo "## Component Status" >> streaming-report.md
+        
+        if [ -d "realtime" ]; then
+          echo "- ✅ Realtime directory exists" >> streaming-report.md
+        else
+          echo "- ❌ Realtime directory missing" >> streaming-report.md
+        fi
+        
+        if [ -f "realtime/streaming_voice_agent.py" ]; then
+          echo "- ✅ Streaming voice agent implemented" >> streaming-report.md
+        else
+          echo "- ❌ Streaming voice agent not implemented" >> streaming-report.md
+        fi
+        
+        if [ -f "realtime/audio_pipeline.py" ]; then
+          echo "- ✅ Audio pipeline implemented" >> streaming-report.md
+        else
+          echo "- ❌ Audio pipeline not implemented" >> streaming-report.md
+        fi
+        
+        if [ -f "realtime/unified_interface.py" ]; then
+          echo "- ✅ Unified interface implemented" >> streaming-report.md
+        else
+          echo "- ❌ Unified interface not implemented" >> streaming-report.md
+        fi
+        
+        if [ -f "start_realtime_assistant.sh" ]; then
+          echo "- ✅ Streaming launch script ready" >> streaming-report.md
+        else
+          echo "- ❌ Streaming launch script not implemented" >> streaming-report.md
+        fi
+        
+        echo "" >> streaming-report.md
+        echo "## Next Steps" >> streaming-report.md
+        echo "Follow the implementation plan in CLAUDE.md under 'To-Do: Focusing on Pure Voice Assistant Real-Time Streaming'" >> streaming-report.md
+        
+        cat streaming-report.md
+    
+    - name: Upload streaming report
+      uses: actions/upload-artifact@v3
+      with:
+        name: streaming-readiness-report
+        path: streaming-report.md

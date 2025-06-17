@@ -1,0 +1,189 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11]
+        test-category: [unit, integration, performance]
+        include:
+          - python-version: 3.11
+            test-category: e2e
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg sqlite3 portaudio19-dev python3-dev
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-xdist pytest-benchmark memory-profiler
+    
+    - name: Install Ollama (for integration tests)
+      if: matrix.test-category == 'integration' || matrix.test-category == 'e2e'
+      run: |
+        curl -fsSL https://ollama.ai/install.sh | sh
+        ollama serve &
+        sleep 10
+        ollama pull llama3.2:latest
+    
+    - name: Run linting
+      if: matrix.python-version == '3.11' && matrix.test-category == 'unit'
+      run: |
+        pip install black flake8 mypy
+        black --check .
+        flake8 .
+        mypy core/ memory/ mcp_server/ gui/ --ignore-missing-imports
+    
+    - name: Run ${{ matrix.test-category }} tests
+      run: |
+        chmod +x run_tests.sh
+        ./run_tests.sh --${{ matrix.test-category }} --coverage --parallel --output-dir test-reports
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.python-version }}-${{ matrix.test-category }}
+        path: test-reports/
+    
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v3
+      with:
+        file: test-reports/coverage.xml
+        flags: ${{ matrix.test-category }}
+        name: codecov-${{ matrix.test-category }}
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run security scan
+      uses: pypa/gh-action-pip-audit@v1.0.8
+      with:
+        inputs: requirements.txt
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Check dependencies
+      run: |
+        pip install pip-audit safety
+        pip-audit --desc --format=json --output=dependency-audit.json
+        safety check --json --output dependency-safety.json
+    
+    - name: Upload dependency reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-reports
+        path: dependency-*.json
+
+  build-and-package:
+    runs-on: ubuntu-latest
+    needs: [test, security-scan, dependency-check]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build wheel
+    
+    - name: Test installation script
+      run: |
+        chmod +x install_dependencies.sh
+        ./install_dependencies.sh
+    
+    - name: Create release artifact
+      run: |
+        mkdir -p dist
+        tar -czf dist/ai-assistant-${{ github.sha }}.tar.gz \
+          --exclude='.git*' \
+          --exclude='venv' \
+          --exclude='logs' \
+          --exclude='temp' \
+          --exclude='data' \
+          --exclude='run' \
+          --exclude='__pycache__' \
+          .
+    
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ai-assistant-build
+        path: dist/
+
+  performance-benchmark:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-benchmark
+    
+    - name: Run performance benchmarks
+      run: |
+        chmod +x run_tests.sh
+        ./run_tests.sh --performance --benchmark --output-dir benchmark-results
+    
+    - name: Store benchmark results
+      uses: benchmark-action/github-action-benchmark@v1
+      with:
+        tool: 'pytest'
+        output-file-path: benchmark-results/benchmark.json
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        auto-push: true
+        comment-on-alert: true
+        alert-threshold: '200%'
+        fail-on-alert: true

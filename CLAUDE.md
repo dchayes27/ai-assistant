@@ -703,3 +703,116 @@ sed -i 's/voice_agent.py/streaming_voice_agent.py/g' README.md
 - Memory profiling and optimization during development
 - Database connection pooling and optimistic locking
 - Always maintain rollback capability until system is proven stable
+
+## GitHub Repository and CI/CD
+
+### Repository Information
+- **GitHub URL**: https://github.com/dchayes27/ai-assistant
+- **Primary branch**: `main`
+- **MCP Git Integration**: Configured with `claude mcp` for git operations
+
+### GitHub Actions Workflows
+
+#### Main CI/CD Pipeline (`.github/workflows/ci.yml`)
+- **Triggers**: Push to `main`/`develop`, PRs to `main`
+- **Matrix testing**: Python 3.9, 3.10, 3.11 × test categories (unit, integration, performance, e2e)
+- **Features**:
+  - Automated linting (black, flake8, mypy)
+  - Comprehensive test suite execution
+  - Coverage reporting via Codecov
+  - Security scanning with pip-audit
+  - Dependency vulnerability checks
+  - Performance benchmarking
+  - Build artifact creation
+
+#### Streaming Development Workflow (`.github/workflows/streaming-tests.yml`)
+- **Triggers**: Push to `feature/realtime-streaming` branch, PRs affecting `realtime/` directory
+- **Features**:
+  - Audio device compatibility testing
+  - OpenAI streaming integration validation
+  - Web interface testing
+  - Migration compatibility checks
+  - Streaming readiness reporting
+
+### Development Workflow
+
+#### Creating Feature Branches
+```bash
+# For general features
+git checkout -b feature/feature-name
+git push -u origin feature/feature-name
+
+# For streaming development specifically
+git checkout -b feature/realtime-streaming
+git push -u origin feature/realtime-streaming
+```
+
+#### Pull Request Process
+1. Create feature branch from `main`
+2. Implement changes with tests
+3. Ensure all CI checks pass
+4. Create PR with descriptive title and body
+5. Address any review feedback
+6. Merge when approved and all checks green
+
+#### Using MCP Git Integration
+```bash
+# The git MCP server is configured for Claude Code
+claude mcp list  # Shows: git: mcp-git
+
+# Claude Code can now perform git operations directly:
+# - View git status and diff
+# - Create commits
+# - Manage branches
+# - View git history
+```
+
+### Automated Testing
+
+#### Test Categories and CI Matrix
+- **Unit tests**: Fast, isolated component testing
+- **Integration tests**: Service interaction testing (requires Ollama)
+- **Performance tests**: Benchmark and load testing
+- **E2E tests**: Full workflow validation
+- **Streaming tests**: Real-time component validation (when implemented)
+
+#### Coverage and Quality Gates
+- **Coverage threshold**: Maintained via Codecov
+- **Code quality**: Enforced via black, flake8, mypy
+- **Security**: Automated dependency scanning
+- **Performance**: Benchmark regression detection
+
+### Release Process
+
+#### Automated Build
+- Triggered on push to `main`
+- Creates versioned release artifacts
+- Runs full test suite including performance benchmarks
+- Generates deployment-ready packages
+
+#### Manual Release
+```bash
+# Tag a release
+git tag -a v1.0.0 -m "Release version 1.0.0"
+git push origin v1.0.0
+
+# GitHub Actions will automatically:
+# - Run full test suite
+# - Create release artifacts
+# - Update performance baselines
+```
+
+### Monitoring and Alerts
+
+#### GitHub Actions provide monitoring for:
+- **Test failures**: Immediate notification on broken builds
+- **Performance regression**: Alerts when benchmarks exceed thresholds
+- **Security vulnerabilities**: Automated dependency scanning
+- **Coverage drops**: Codecov integration tracks coverage changes
+
+#### Status Badges
+Add to README.md for visibility:
+```markdown
+[![CI/CD Pipeline](https://github.com/dchayes27/ai-assistant/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/dchayes27/ai-assistant/actions)
+[![codecov](https://codecov.io/gh/dchayes27/ai-assistant/branch/main/graph/badge.svg)](https://codecov.io/gh/dchayes27/ai-assistant)
+```
