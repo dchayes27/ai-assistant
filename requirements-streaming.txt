@@ -1,0 +1,52 @@
+# Real-time Streaming Dependencies
+# Additional requirements for voice assistant streaming implementation
+
+# WebRTC Voice Activity Detection
+webrtcvad==2.0.10
+
+# Enhanced audio processing for real-time streaming
+pyaudio==0.2.14
+asyncio-mqtt==0.16.2
+
+# OpenAI streaming support (ensure latest version)
+openai>=1.50.0
+
+# Real-time audio processing
+noisereduce==3.0.2
+webrtc-audio-processing==0.3
+
+# Performance monitoring for streaming
+memory-profiler==0.61.0
+psutil==6.1.0
+
+# Async HTTP for streaming APIs
+aiohttp==3.10.11
+websockets==14.1
+
+# Audio format conversion and processing
+pydub==0.25.1
+librosa==0.10.2
+
+# Queue management for streaming
+asyncio-throttle==1.0.2
+
+# Development and testing for streaming
+pytest-asyncio==0.25.0
+pytest-timeout==2.4.2
+pytest-mock==3.14.0
+
+# Optional: Enhanced TTS for streaming
+# coqui-tts==0.24.2  # Uncomment if using Coqui TTS for streaming
+# TTS==0.24.2        # Alternative TTS option
+
+# Audio device management
+sounddevice==0.5.1
+portaudio==0.2.0
+
+# Real-time data processing
+numpy>=1.26.0
+scipy>=1.14.0
+
+# Configuration management for streaming
+python-dotenv==1.0.1
+pyyaml>=6.0

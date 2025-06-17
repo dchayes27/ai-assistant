@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-06-17T16:17:05.411600",
+  "version": "current",
+  "metrics": {
+    "audio_init_ms": Infinity,
+    "audio_devices": 0,
+    "whisper_load_ms": Infinity,
+    "database_connect_ms": 0.007166992872953415,
+    "config_load_ms": Infinity,
+    "estimated_voice_to_voice_ms": Infinity
+  },
+  "test_scenarios": [],
+  "targets": {
+    "voice_to_voice_ms": 500,
+    "time_to_first_token_ms": 200,
+    "interruption_response_ms": 200,
+    "audio_quality_score": 0.95
+  }
+}
