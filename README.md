@@ -59,7 +59,7 @@ This project implements a fully local AI assistant that can:
 3. Install Ollama and download your preferred models
 4. Run the setup script:
    ```bash
-   python scripts/setup.py
+   ./install_dependencies.sh
    ```
 
 ## Usage
