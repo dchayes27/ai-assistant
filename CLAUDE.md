@@ -31,9 +31,9 @@ The project follows a modular architecture with clear separation of concerns:
 ./run_tests.sh --fast                    # Exclude slow tests
 ./run_tests.sh --coverage               # With coverage reporting
 
-# Run tests requiring external services
-./run_tests.sh --requires-ollama        # Tests needing Ollama
-./run_tests.sh --audio                  # Audio processing tests
+# Note: Some tests require external services
+./run_tests.sh --requires-ollama        # Requires Ollama running on localhost:11434
+./run_tests.sh --audio                  # Requires audio hardware/drivers
 ```
 
 ### Linting and Code Quality
