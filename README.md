@@ -12,6 +12,19 @@ This project implements a fully local AI assistant that can:
 - Integrate with external tools via MCP servers
 - Provide both GUI and API interfaces
 
+## Documentation
+
+- **[Quick Reference](docs/QUICKREF.md)** - Common commands and URLs
+- **[Current State](docs/CURRENT_STATE.md)** - Project overview and setup
+- **[Architecture](docs/ARCHITECTURE.md)** - System design and data flow
+- **[API Reference](docs/API.md)** - REST and WebSocket API documentation
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Contributing](docs/CONTRIBUTING.md)** - Development guidelines
+- **[Testing Guide](tests/README.md)** - Running and writing tests
+- **[Roadmap](docs/ROADMAP.md)** - Planned improvements and enhancements
+
+For Claude Code development guidance, see [CLAUDE.md](CLAUDE.md).
+
 ## Architecture
 
 ### Core Components
@@ -59,62 +72,55 @@ This project implements a fully local AI assistant that can:
 3. Install Ollama and download your preferred models
 4. Run the setup script:
    ```bash
-   python scripts/setup.py
+   ./install_dependencies.sh
    ```
+
+## Quick Start
+
+```bash
+# 1. Start all services (Ollama + API + GUI)
+./scripts/start_all.sh
+
+# 2. Open GUI in browser
+# Navigate to http://localhost:7860
+
+# 3. Stop services when done
+./scripts/stop_all.sh
+```
+
+For detailed usage, see [CURRENT_STATE.md](docs/CURRENT_STATE.md).
 
 ## Usage
 
-### Start the API server:
+### Start all services (recommended):
 ```bash
-python -m core.main
+./scripts/start_all.sh
 ```
 
-### Launch the GUI:
+### Start GUI only:
 ```bash
+./start_gui.sh
+# OR
 python -m gui.app
 ```
 
-### Run as MCP server:
+### Start API server only:
 ```bash
-python -m mcp_server.server
+python -m mcp_server.main
+```
+
+### Stop all services:
+```bash
+./scripts/stop_all.sh
 ```
 
 ## Configuration
 
-Configuration is managed through environment variables and config files. See `config.example.yaml` for available options.
+Configuration is managed through YAML files in the `config/` directory and environment variables. See `.env.example` for environment settings and `config/config.yaml` for application configuration.
 
 ## Development
 
-### Project Structure
-```
-ai-assistant/
-├── core/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── llm.py
-│   ├── speech.py
-│   └── tts.py
-├── memory/
-│   ├── __init__.py
-│   ├── database.py
-│   ├── context.py
-│   └── models.py
-├── mcp_server/
-│   ├── __init__.py
-│   ├── server.py
-│   └── tools.py
-├── gui/
-│   ├── __init__.py
-│   ├── app.py
-│   └── components.py
-├── scripts/
-│   ├── setup.py
-│   └── download_models.py
-├── tests/
-├── requirements.txt
-├── README.md
-└── .gitignore
-```
+For detailed project structure and architecture, see [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md).
 
 ## License
 

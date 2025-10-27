@@ -1,4 +1,11 @@
-# Real-Time Voice Assistant Streaming Requirements
+# Real-Time Voice Assistant Streaming Roadmap (PLANNED)
+
+**Status**: Planning Phase - Not Yet Implemented
+**Target**: Future enhancement to enable real-time streaming voice interactions
+
+> ⚠️ **Note**: This is a planning document for future development. The features described here are NOT yet implemented. For current capabilities, see [CURRENT_STATE.md](docs/CURRENT_STATE.md).
+
+---
 
 ## Current System Analysis
 

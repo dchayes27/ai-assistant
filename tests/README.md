@@ -108,6 +108,11 @@ pytest -m "not requires_audio"
 pytest -m "not requires_ollama and not requires_audio"
 ```
 
+**Automatic Skipping**:
+- `@pytest.mark.requires_ollama` tests are skipped if Ollama is not running on localhost:11434
+- `@pytest.mark.requires_audio` tests are skipped if PyAudio/audio hardware is unavailable
+- Use markers to explicitly include/exclude these tests in CI/CD environments
+
 ## Test Configuration
 
 ### Markers
