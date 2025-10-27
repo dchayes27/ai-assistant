@@ -85,36 +85,7 @@ Configuration is managed through environment variables and config files. See `co
 
 ## Development
 
-### Project Structure
-```
-ai-assistant/
-├── core/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── llm.py
-│   ├── speech.py
-│   └── tts.py
-├── memory/
-│   ├── __init__.py
-│   ├── database.py
-│   ├── context.py
-│   └── models.py
-├── mcp_server/
-│   ├── __init__.py
-│   ├── server.py
-│   └── tools.py
-├── gui/
-│   ├── __init__.py
-│   ├── app.py
-│   └── components.py
-├── scripts/
-│   ├── setup.py
-│   └── download_models.py
-├── tests/
-├── requirements.txt
-├── README.md
-└── .gitignore
-```
+For detailed project structure and architecture, see [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md).
 
 ## License
 
