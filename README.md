@@ -88,7 +88,7 @@ python -m mcp_server.main
 
 ## Configuration
 
-Configuration is managed through environment variables and config files. See `config.example.yaml` for available options.
+Configuration is managed through YAML files in the `config/` directory and environment variables. See `.env.example` for environment settings and `config/config.yaml` for application configuration.
 
 ## Development
 
