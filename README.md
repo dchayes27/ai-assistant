@@ -62,6 +62,21 @@ This project implements a fully local AI assistant that can:
    ./install_dependencies.sh
    ```
 
+## Quick Start
+
+```bash
+# 1. Start all services (Ollama + API + GUI)
+./scripts/start_all.sh
+
+# 2. Open GUI in browser
+# Navigate to http://localhost:7860
+
+# 3. Stop services when done
+./scripts/stop_all.sh
+```
+
+For detailed usage, see [CURRENT_STATE.md](docs/CURRENT_STATE.md).
+
 ## Usage
 
 ### Start all services (recommended):
