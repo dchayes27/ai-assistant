@@ -93,6 +93,11 @@ Comprehensive startup script with health checks and dependency management.
 7. **Health Validation** - Comprehensive health checks
 8. **Status File Creation** - Creates runtime status information
 
+#### Health Check Details
+- **Ollama**: `GET http://localhost:11434/api/tags` (200 OK with model list)
+- **API Server**: `GET http://localhost:8000/health` (status: "healthy")
+- **GUI**: `GET http://localhost:7860` (Gradio interface loaded)
+
 #### Configuration
 - **Default Ports**: Ollama (11434), API (8000), GUI (7860), Metrics (8001)
 - **Environment Detection**: Automatically detects dev/prod environment
