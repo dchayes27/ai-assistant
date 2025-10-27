@@ -2,6 +2,23 @@
 
 Provides vector similarity search, embedding storage and retrieval,
 and integration with the main database.
+
+Overview:
+- Vector similarity search using cosine similarity
+- Embedding storage and caching
+- Optional clustering functionality (requires scikit-learn)
+- Batch processing for performance
+
+Key Dependencies:
+- numpy for vector operations
+- scikit-learn (optional) for clustering features
+- DatabaseManager for persistence
+
+Optional Features:
+- cluster_entities: Requires scikit-learn, gracefully degrades if not available
+
+Recent Changes:
+- 2025-10-27: Added optional scikit-learn import with graceful degradation
 """
 
 import json
@@ -14,6 +31,18 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from loguru import logger
 
 from .db_manager import DatabaseManager, get_db_manager
+
+# Optional dependency: scikit-learn for clustering
+# Clustering features will be disabled if sklearn is not installed
+try:
+    from sklearn.cluster import KMeans, AgglomerativeClustering
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    logger.warning(
+        "scikit-learn not installed. Clustering features will be disabled. "
+        "To enable clustering, install scikit-learn: pip install scikit-learn>=1.3.0"
+    )
 
 
 class EntityType(Enum):
@@ -353,56 +382,80 @@ class VectorStore:
     def cluster_entities(self, entity_type: EntityType,
                         n_clusters: int = 5,
                         method: str = "kmeans") -> Dict[int, List[int]]:
-        """Cluster entities based on their embeddings.
-        
+        """Cluster entities based on their embeddings using scikit-learn.
+
+        This is an optional feature that requires scikit-learn to be installed.
+        If scikit-learn is not available, this method will raise a clear error
+        with instructions on how to enable clustering.
+
         Args:
             entity_type: Type of entity to cluster.
             n_clusters: Number of clusters.
             method: Clustering method ('kmeans', 'hierarchical').
-            
+
         Returns:
             Dictionary mapping cluster ID to list of entity IDs.
+
+        Raises:
+            ValueError: If scikit-learn is not installed or invalid method specified.
         """
+        # Check if scikit-learn is available
+        # This allows the system to function without sklearn for other features
+        if not SKLEARN_AVAILABLE:
+            raise ValueError(
+                "Clustering requires scikit-learn to be installed. "
+                "Install it with: pip install scikit-learn>=1.3.0\n"
+                "Note: All other vector store features work without scikit-learn. "
+                "Clustering is an optional advanced feature."
+            )
+
         # Get all embeddings
         with self.db._pool.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT DISTINCT entity_id, embedding 
-                FROM embeddings 
+                SELECT DISTINCT entity_id, embedding
+                FROM embeddings
                 WHERE entity_type = ?
             """, (entity_type.value,))
-            
+
             entity_ids = []
             embeddings = []
-            
+
             for row in cursor.fetchall():
                 entity_ids.append(row[0])
                 embeddings.append(json.loads(row[1]))
-        
+
         if not embeddings:
+            logger.warning(f"No embeddings found for {entity_type.value}, returning empty clusters")
             return {}
-        
+
         X = np.array(embeddings)
-        
+
+        # Use pre-imported sklearn classes (imported at module level if available)
         if method == "kmeans":
-            from sklearn.cluster import KMeans
+            # KMeans chosen for its speed and scalability with large embedding sets
+            # n_clusters is capped at the number of samples to avoid errors
             kmeans = KMeans(n_clusters=min(n_clusters, len(X)), random_state=42)
             labels = kmeans.fit_predict(X)
         elif method == "hierarchical":
-            from sklearn.cluster import AgglomerativeClustering
+            # Hierarchical clustering provides dendrogram structure
+            # Better for small to medium datasets where cluster hierarchy matters
             clustering = AgglomerativeClustering(n_clusters=min(n_clusters, len(X)))
             labels = clustering.fit_predict(X)
         else:
-            raise ValueError(f"Unknown clustering method: {method}")
-        
+            raise ValueError(
+                f"Unknown clustering method: {method}. "
+                f"Supported methods: 'kmeans', 'hierarchical'"
+            )
+
         # Group entities by cluster
         clusters = {}
         for entity_id, label in zip(entity_ids, labels):
             if label not in clusters:
                 clusters[label] = []
             clusters[label].append(entity_id)
-        
-        logger.info(f"Clustered {len(entity_ids)} entities into {len(clusters)} clusters")
+
+        logger.info(f"Clustered {len(entity_ids)} entities into {len(clusters)} clusters using {method}")
         return clusters
     
     def generate_embeddings_for_entities(self, entity_type: EntityType,
