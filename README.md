@@ -64,19 +64,26 @@ This project implements a fully local AI assistant that can:
 
 ## Usage
 
-### Start the API server:
+### Start all services (recommended):
 ```bash
-python -m core.main
+./scripts/start_all.sh
 ```
 
-### Launch the GUI:
+### Start GUI only:
 ```bash
+./start_gui.sh
+# OR
 python -m gui.app
 ```
 
-### Run as MCP server:
+### Start API server only:
 ```bash
-python -m mcp_server.server
+python -m mcp_server.main
+```
+
+### Stop all services:
+```bash
+./scripts/stop_all.sh
 ```
 
 ## Configuration
