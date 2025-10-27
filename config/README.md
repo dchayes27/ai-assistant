@@ -67,8 +67,8 @@ with ConfigManager(auto_reload=True) as manager:
 app:
   name: "AI Assistant"
   version: "1.0.0"
-  debug: false
-  log_level: "INFO"
+  debug: false  # Production default (true in development)
+  log_level: "INFO"  # Production default (DEBUG in development)
   temp_dir: "temp"
   max_concurrent_requests: 10
 ```
