@@ -755,6 +755,18 @@ git push -u origin feature/realtime-streaming
 5. Address any review feedback
 6. Merge when approved and all checks green
 
+#### Using MCP Git Integration
+```bash
+# The git MCP server is configured for Claude Code
+claude mcp list  # Shows: git: mcp-git
+
+# Claude Code can now perform git operations directly:
+# - View git status and diff
+# - Create commits
+# - Manage branches
+# - View git history
+```
+
 ### Automated Testing
 
 #### Test Categories and CI Matrix
