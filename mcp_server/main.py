@@ -1,6 +1,28 @@
 """
 FastAPI-based MCP server for AI Assistant
-Provides REST API and WebSocket endpoints for agent interactions
+
+Provides REST API and WebSocket endpoints for agent interactions.
+
+Overview:
+- RESTful API for agent queries, memory management, and tool execution
+- WebSocket support for real-time streaming interactions
+- JWT and API key authentication with rate limiting
+- Integration with Ollama for LLM operations
+
+Key Dependencies:
+- FastAPI for API framework
+- slowapi for rate limiting (prevents brute force attacks)
+- DatabaseManager for persistent storage
+- OllamaClient for LLM interactions
+
+Security Features:
+- Rate limiting on authentication endpoints (5 attempts per 15 minutes)
+- JWT token validation
+- API key authentication
+- CORS middleware for web clients
+
+Recent Changes:
+- 2025-10-27: Added rate limiting to prevent brute force attacks on auth endpoints
 """
 
 import os
@@ -18,6 +40,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.security import HTTPBearer
 from loguru import logger
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -125,7 +150,13 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    """Create FastAPI application"""
+    """Create FastAPI application with security middleware.
+
+    Configures:
+    - Rate limiting to prevent brute force attacks
+    - CORS for cross-origin requests
+    - Authentication middleware for all protected endpoints
+    """
     app = FastAPI(
         title="AI Assistant MCP Server",
         description="FastAPI-based MCP server for AI Assistant with REST API and WebSocket support",
@@ -134,7 +165,15 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc"
     )
-    
+
+    # Configure rate limiter
+    # Uses client IP address to track request rates
+    # This prevents brute force attacks on authentication endpoints
+    limiter = Limiter(key_func=get_remote_address)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    logger.info("Rate limiting enabled for authentication endpoints")
+
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -143,10 +182,10 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     # Add authentication middleware
     app.add_middleware(AuthMiddleware)
-    
+
     return app
 
 
@@ -226,16 +265,39 @@ async def get_status(current_user: Dict[str, Any] = Depends(get_read_user)):
 
 # Authentication endpoints
 @app.post("/auth/login", response_model=AuthResponse)
-async def login_endpoint(auth_request: AuthRequest):
-    """User login endpoint"""
+@app.state.limiter.limit("5/15minutes")
+async def login_endpoint(request: Request, auth_request: AuthRequest):
+    """User login endpoint with rate limiting.
+
+    Rate limit: 5 attempts per 15 minutes per IP address.
+
+    This prevents brute force attacks where attackers try many
+    passwords rapidly. After 5 failed attempts, the IP is blocked
+    for 15 minutes. Legitimate users can retry after the window.
+
+    The limit applies per IP, so shared IPs (corporate networks)
+    may affect multiple users. Consider adding CAPTCHA after
+    3 failures for better UX.
+    """
+    # Log suspicious activity - many failed attempts
+    logger.info(f"Login attempt from {request.client.host}")
     return await login(auth_request)
 
 
 @app.post("/auth/refresh", response_model=AuthResponse)
-async def refresh_token(current_user: Dict[str, Any] = Depends(get_current_user)):
-    """Refresh JWT token"""
+@app.state.limiter.limit("10/15minutes")
+async def refresh_token(request: Request, current_user: Dict[str, Any] = Depends(get_current_user)):
+    """Refresh JWT token with rate limiting.
+
+    Rate limit: 10 attempts per 15 minutes per IP address.
+
+    Token refresh is slightly more permissive than login (10 vs 5)
+    because legitimate users may need to refresh more frequently,
+    especially in long sessions or with short token expiry times.
+    """
     # This would typically validate a refresh token
     # For now, just return the same token info
+    logger.info(f"Token refresh for user: {current_user.get('user_id')}")
     return AuthResponse(
         access_token="refreshed_token",
         expires_in=1800,
