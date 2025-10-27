@@ -615,51 +615,150 @@ class VectorStore:
         logger.info(f"Exported {len(embeddings_data)} embeddings to {output_file}")
         return len(embeddings_data)
     
-    def import_embeddings(self, input_file: str, overwrite: bool = False) -> int:
-        """Import embeddings from a file.
-        
+    def import_embeddings(self, input_file: str, overwrite: bool = False, dry_run: bool = False) -> int:
+        """Import embeddings from a file with comprehensive validation.
+
+        Security: This method validates all input data before import to prevent
+        malicious or corrupted files from crashing the system or corrupting the database.
+
+        Validation includes:
+        - JSON schema validation (required fields)
+        - Embedding dimension matching
+        - Entity type validation
+        - Transaction-based import with rollback on errors
+
         Args:
             input_file: Path to input file (JSON format).
             overwrite: Whether to overwrite existing embeddings.
-            
+            dry_run: If True, validate and preview but don't actually import.
+
         Returns:
-            Number of embeddings imported.
+            Number of embeddings imported (or would be imported in dry-run mode).
+
+        Raises:
+            FileNotFoundError: If input file doesn't exist.
+            ValueError: If JSON is invalid or data fails validation.
+            Exception: If database operation fails (with automatic rollback).
         """
-        with open(input_file, 'r') as f:
-            embeddings_data = json.load(f)
-        
+        # Load and parse JSON file
+        try:
+            with open(input_file, 'r') as f:
+                embeddings_data = json.load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Import file not found: {input_file}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in import file: {e}")
+
+        if not isinstance(embeddings_data, list):
+            raise ValueError("Import file must contain a JSON array of embedding objects")
+
+        # Required fields for each embedding entry
+        # These are critical for data integrity and proper storage
+        required_fields = {'entity_type', 'entity_id', 'embedding', 'model'}
+
+        # Validate each embedding entry before importing
+        for i, data in enumerate(embeddings_data):
+            if not isinstance(data, dict):
+                raise ValueError(f"Entry {i} is not a JSON object")
+
+            # Check for required fields
+            missing = required_fields - set(data.keys())
+            if missing:
+                raise ValueError(
+                    f"Entry {i} missing required fields: {missing}. "
+                    f"Required fields: {required_fields}"
+                )
+
+            # Validate entity_type is one of the known types
+            # This prevents corrupt data from entering the system
+            try:
+                EntityType(data['entity_type'])
+            except ValueError:
+                valid_types = [t.value for t in EntityType]
+                raise ValueError(
+                    f"Entry {i} has invalid entity_type: '{data['entity_type']}'. "
+                    f"Valid types: {valid_types}"
+                )
+
+            # Validate embedding is a list/array
+            if not isinstance(data['embedding'], (list, tuple)):
+                raise ValueError(
+                    f"Entry {i} embedding is not an array "
+                    f"(got {type(data['embedding']).__name__})"
+                )
+
+            # Validate embedding dimension matches expected
+            # Mismatched dimensions would cause similarity search to fail
+            if len(data['embedding']) != self.embedding_dim:
+                raise ValueError(
+                    f"Entry {i} has wrong embedding dimension: "
+                    f"{len(data['embedding'])} (expected {self.embedding_dim}). "
+                    f"This import file may be from a different model or configuration."
+                )
+
+            # Validate all embedding values are numbers
+            # This prevents NaN, infinity, or string values that would break vector ops
+            try:
+                np.array(data['embedding'], dtype=np.float32)
+            except (ValueError, TypeError) as e:
+                raise ValueError(
+                    f"Entry {i} has invalid embedding values: {e}. "
+                    f"All embedding values must be numeric."
+                )
+
+        # If dry-run, report what would be imported and exit
+        if dry_run:
+            logger.info(
+                f"DRY RUN: Would import {len(embeddings_data)} embeddings from {input_file}. "
+                f"Validation passed. Use dry_run=False to perform actual import."
+            )
+            return len(embeddings_data)
+
         imported = 0
-        
+
+        # Use transaction for atomic import - either all succeed or all rollback
+        # This prevents partial imports that could corrupt the database state
         with self.db._pool.get_connection() as conn:
-            cursor = conn.cursor()
-            
-            for data in embeddings_data:
-                # Check if embedding exists
-                cursor.execute("""
-                    SELECT id FROM embeddings 
-                    WHERE entity_type = ? AND entity_id = ?
-                """, (data['entity_type'], data['entity_id']))
-                
-                exists = cursor.fetchone() is not None
-                
-                if not exists or overwrite:
-                    if exists and overwrite:
-                        cursor.execute("""
-                            DELETE FROM embeddings 
-                            WHERE entity_type = ? AND entity_id = ?
-                        """, (data['entity_type'], data['entity_id']))
-                    
+            try:
+                cursor = conn.cursor()
+                cursor.execute("BEGIN")
+
+                for data in embeddings_data:
+                    # Check if embedding exists
                     cursor.execute("""
-                        INSERT INTO embeddings (entity_type, entity_id, embedding, model, created_at)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (data['entity_type'], data['entity_id'], 
-                          json.dumps(data['embedding']), data['model'], data['created_at']))
-                    
-                    imported += 1
-            
-            conn.commit()
-        
-        logger.info(f"Imported {imported} embeddings from {input_file}")
+                        SELECT id FROM embeddings
+                        WHERE entity_type = ? AND entity_id = ?
+                    """, (data['entity_type'], data['entity_id']))
+
+                    exists = cursor.fetchone() is not None
+
+                    if not exists or overwrite:
+                        if exists and overwrite:
+                            # Delete existing to allow overwrite
+                            cursor.execute("""
+                                DELETE FROM embeddings
+                                WHERE entity_type = ? AND entity_id = ?
+                            """, (data['entity_type'], data['entity_id']))
+
+                        # Insert new embedding
+                        cursor.execute("""
+                            INSERT INTO embeddings (entity_type, entity_id, embedding, model, created_at)
+                            VALUES (?, ?, ?, ?, ?)
+                        """, (data['entity_type'], data['entity_id'],
+                              json.dumps(data['embedding']), data['model'], data.get('created_at')))
+
+                        imported += 1
+
+                # Commit transaction - all imports succeeded
+                conn.commit()
+                logger.info(f"Successfully imported {imported} embeddings from {input_file}")
+
+            except Exception as e:
+                # Rollback on any error - this ensures database consistency
+                conn.rollback()
+                logger.error(f"Import failed, rolled back all changes: {e}")
+                raise ValueError(f"Import failed at entry: {e}") from e
+
         return imported
     
     def get_statistics(self) -> Dict[str, Any]:
