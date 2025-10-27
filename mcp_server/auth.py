@@ -1,5 +1,26 @@
 """
 Authentication middleware and utilities for MCP server
+
+This module provides JWT and API key-based authentication for the MCP server.
+
+Overview:
+- JWT tokens for session-based authentication
+- API keys for service-to-service authentication
+- Role-based access control (read, write, admin permissions)
+- Secure password hashing with bcrypt
+
+Key Dependencies:
+- PyJWT for token generation and validation
+- passlib for password hashing
+- FastAPI security utilities for HTTP Bearer authentication
+
+Security Considerations:
+- JWT secret MUST be set via JWT_SECRET_KEY environment variable in production
+- API keys should be stored securely and never logged
+- Tokens expire automatically (configurable via environment variables)
+
+Recent Changes:
+- 2025-10-27: Removed hardcoded dev API key, added fail-fast validation for production
 """
 
 import os
@@ -18,9 +39,35 @@ from .models import AuthRequest, AuthResponse
 
 class AuthConfig:
     """Authentication configuration"""
-    
+
     def __init__(self):
-        self.secret_key = os.getenv("JWT_SECRET_KEY", self._generate_secret_key())
+        # JWT secret key - MUST be set explicitly in production
+        # We generate one in development but warn that it will invalidate tokens on restart
+        self.environment = os.getenv("ENVIRONMENT", "development")
+        self.secret_key = os.getenv("JWT_SECRET_KEY")
+
+        if not self.secret_key:
+            if self.environment == "production":
+                # Fail fast in production - no defaults allowed
+                raise ValueError(
+                    "JWT_SECRET_KEY must be set in production environment. "
+                    "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+                )
+            else:
+                # Development mode: generate key but warn about consequences
+                logger.error(
+                    "JWT_SECRET_KEY not set! Generating temporary key. "
+                    "All issued tokens will be invalidated when the server restarts. "
+                    "Set JWT_SECRET_KEY environment variable to persist tokens across restarts."
+                )
+                self.secret_key = self._generate_secret_key()
+        elif len(self.secret_key) < 32:
+            # Enforce minimum key length for security
+            raise ValueError(
+                f"JWT_SECRET_KEY must be at least 32 characters (got {len(self.secret_key)}). "
+                "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+
         self.algorithm = "HS256"
         self.access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
         self.refresh_token_expire_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
@@ -34,32 +81,46 @@ class AuthConfig:
         return secrets.token_urlsafe(32)
     
     def _load_api_keys(self) -> Dict[str, Dict[str, Any]]:
-        """Load API keys from environment or config"""
+        """Load API keys from environment variables.
+
+        Security: API keys are NEVER hardcoded or logged. They must be
+        provided via environment variables (API_KEY_1, API_KEY_2, etc.).
+
+        In development, if no keys are configured, a warning is logged
+        with instructions. In production, missing keys cause startup to fail.
+        """
         api_keys = {}
-        
-        # Load from environment variables
-        for i in range(1, 11):  # Support up to 10 API keys
+
+        # Load from environment variables (support up to 10 API keys)
+        for i in range(1, 11):
             key = os.getenv(f"API_KEY_{i}")
             name = os.getenv(f"API_KEY_{i}_NAME", f"key_{i}")
             permissions = os.getenv(f"API_KEY_{i}_PERMISSIONS", "read,write").split(",")
-            
+
             if key:
+                # Never log the actual key value - only log that a key was loaded
                 api_keys[key] = {
                     "name": name,
                     "permissions": permissions,
                     "created_at": datetime.utcnow().isoformat()
                 }
-        
-        # Default API key for development
-        if not api_keys and os.getenv("ENVIRONMENT", "development") == "development":
-            default_key = "dev-key-12345"
-            api_keys[default_key] = {
-                "name": "development",
-                "permissions": ["read", "write", "admin"],
-                "created_at": datetime.utcnow().isoformat()
-            }
-            logger.warning(f"Using default development API key: {default_key}")
-        
+                logger.info(f"Loaded API key: {name} with permissions: {', '.join(permissions)}")
+
+        # Warn if no API keys configured
+        if not api_keys:
+            if self.environment == "production":
+                raise ValueError(
+                    "No API keys configured in production. "
+                    "Set at least one API key via API_KEY_1 environment variable. "
+                    "Generate a key with: python -c 'import secrets; print(f\"ak_{secrets.token_urlsafe(32)}\")'"
+                )
+            else:
+                logger.warning(
+                    "No API keys configured. API key authentication will not work. "
+                    "To enable API key auth in development, set environment variable: "
+                    "API_KEY_1=<your-key> API_KEY_1_NAME=dev API_KEY_1_PERMISSIONS=read,write,admin"
+                )
+
         return api_keys
 
 
