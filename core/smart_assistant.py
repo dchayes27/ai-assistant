@@ -964,12 +964,17 @@ async def main():
             "Hello! How are you today?",
             thread_id=thread_id
         )
-        
-        print(f"Assistant: {response}")
-        
+
+        # Log response for debugging/monitoring
+        # Using logger instead of print ensures output is captured by logging infrastructure
+        logger.info(f"Assistant response generated: {len(response)} characters")
+        logger.debug(f"Full response: {response}")
+
         # Get performance metrics
         metrics = await assistant.get_performance_metrics()
-        print(f"Metrics: {metrics}")
+        # Log metrics for performance monitoring
+        # Debug level since this is detailed information
+        logger.debug(f"Performance metrics: {metrics}")
 
 
 if __name__ == "__main__":
