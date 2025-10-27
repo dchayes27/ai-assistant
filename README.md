@@ -12,6 +12,19 @@ This project implements a fully local AI assistant that can:
 - Integrate with external tools via MCP servers
 - Provide both GUI and API interfaces
 
+## Documentation
+
+- **[Quick Reference](docs/QUICKREF.md)** - Common commands and URLs
+- **[Current State](docs/CURRENT_STATE.md)** - Project overview and setup
+- **[Architecture](docs/ARCHITECTURE.md)** - System design and data flow
+- **[API Reference](docs/API.md)** - REST and WebSocket API documentation
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Contributing](docs/CONTRIBUTING.md)** - Development guidelines
+- **[Testing Guide](tests/README.md)** - Running and writing tests
+- **[Roadmap](docs/ROADMAP.md)** - Planned improvements and enhancements
+
+For Claude Code development guidance, see [CLAUDE.md](CLAUDE.md).
+
 ## Architecture
 
 ### Core Components
