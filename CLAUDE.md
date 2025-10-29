@@ -21,6 +21,70 @@ For comprehensive understanding of the system, refer to these documentation file
 
 **When working on issues**: Always check docs/ROADMAP.md first to understand context and see if related work is tracked.
 
+## Using Context7 MCP Server for Latest Documentation
+
+**IMPORTANT**: Context7 MCP server is available and should be used when working with modern frameworks and libraries.
+
+### What is Context7?
+
+Context7 provides **up-to-date, version-specific documentation** and code examples for libraries and frameworks. It retrieves the latest official documentation and injects it directly into the context, ensuring you have current API references and best practices.
+
+### When to Use Context7
+
+**ALWAYS use Context7 when working with:**
+
+1. **Fast-moving frameworks and libraries** (frequently updated APIs):
+   - React, Next.js, Vue, Angular
+   - React Query, Zustand, Redux Toolkit
+   - TailwindCSS, shadcn/ui
+   - Vite, Webpack, Turbopack
+
+2. **Backend frameworks and tools**:
+   - FastAPI, Django, Express, Fastify
+   - Supabase, Prisma, Drizzle ORM
+   - PostgreSQL, MongoDB
+
+3. **Any library where you're uncertain about current API**:
+   - Validation libraries (Zod, Yup)
+   - Authentication (NextAuth, Clerk, Auth0)
+   - Testing frameworks (Vitest, Jest, Playwright)
+   - Build tools and configurations
+
+### How to Use Context7
+
+Context7 provides two main tools (use via MCP):
+
+1. **resolve-library-id**: Convert library names to Context7-compatible IDs
+   ```
+   Example: "react" → "react@latest"
+   ```
+
+2. **get-library-docs**: Retrieve documentation for a library
+   - Supports topic-specific focus (e.g., 'hooks', 'routing', 'authentication')
+   - Customizable token limits to control documentation size
+
+### Usage Examples
+
+**Before starting work on:**
+- Adding React hooks → Query Context7 for React hooks documentation
+- Implementing Next.js routing → Get latest Next.js App Router docs
+- Setting up FastAPI endpoints → Retrieve current FastAPI patterns
+- Configuring TailwindCSS → Get latest utility classes and configuration
+
+**When you encounter:**
+- Deprecated API warnings → Check Context7 for migration guides
+- Unclear library usage → Query Context7 for current examples
+- Version compatibility issues → Get version-specific documentation
+
+### Best Practices
+
+1. **Query Context7 at the start** of working with external libraries
+2. **Use topic filtering** to get focused, relevant documentation
+3. **Reference official docs** from Context7 when explaining code choices
+4. **Update comments** with Context7-sourced patterns when they differ from Claude's training data
+
+**Remember**: Claude's knowledge cutoff is January 2025. For libraries updated after this date, Context7 provides the most current information.
+
 ## Architecture
 
 The project follows a modular architecture with clear separation of concerns:
