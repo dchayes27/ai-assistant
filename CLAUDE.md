@@ -2,24 +2,52 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚡ QUICK START FOR CLAUDE
+
+**If user says: "Read CLAUDE.md and proceed with next steps"**
+→ Read this file, then `docs/IMPLEMENTATION_PLAN.md`, then `docs/ISSUES_UPDATE_PLAN.md`
+→ Check the "CURRENT PROGRESS" section below
+→ Continue from where we left off in the implementation plan
+
+## ⚠️ CRITICAL: READ THIS FIRST (Updated 2025-10-29)
+
+**INSTRUCTIONS FOR CLAUDE**: When asked to "proceed with next steps":
+1. **IMMEDIATELY READ**: `docs/IMPLEMENTATION_PLAN.md` - Contains the full implementation roadmap
+2. **THEN READ**: `docs/ISSUES_UPDATE_PLAN.md` - Contains current priorities and issue tracking
+3. **CHECK**: What phase/day we're on in the implementation plan (see CURRENT PROGRESS below)
+4. **CONTINUE**: From the last completed task in the plan
+
+**Current State**: Project framework exists but is **NOT OPERATIONAL**. Major streaming refactor in progress to achieve <200ms voice-to-voice latency.
+
+**Hardware**: MacBook Pro M3 Max (40 GPU cores, 16 CPU cores, 64GB RAM) - Perfect for this project!
+
+**Active Development**:
+- Implementing XTTS v2 streaming pipeline (replacing batch processing)
+- Target: <200ms latency (currently 2-3s)
+- Using: XTTS v2 (TTS), Faster-Whisper (STT), Ollama (LLM), all local
+
 ## Project Overview
 
-This is a comprehensive local AI assistant with voice capabilities, persistent memory, and MCP (Model Context Protocol) integration. The system provides both GUI and API interfaces for interacting with AI models running locally via Ollama.
+This is a comprehensive local AI assistant with voice capabilities, persistent memory, and MCP (Model Context Protocol) integration. The system is being refactored from batch processing to real-time streaming using XTTS v2 for TTS, Faster-Whisper for STT, and Ollama for local LLM processing.
 
 ## Key Documentation
 
-For comprehensive understanding of the system, refer to these documentation files:
+**🔴 MUST READ IN THIS ORDER**:
+1. **THIS FILE** (CLAUDE.md) - Current status and instructions
+2. **[docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)** - Full 10-day implementation plan with M3 optimizations
+3. **[docs/ISSUES_UPDATE_PLAN.md](docs/ISSUES_UPDATE_PLAN.md)** - GitHub issues priorities and tracking
 
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed system architecture, component interactions, data models, and technology decisions
-- **[docs/API.md](docs/API.md)** - Complete REST and WebSocket API reference with examples
-- **[docs/ROADMAP.md](docs/ROADMAP.md)** - Implementation roadmap, completed work, and GitHub issues for remaining tasks
-- **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Common issues, solutions, and debugging guides
-- **[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)** - Development guidelines, code standards, and PR process
-- **[docs/QUICKREF.md](docs/QUICKREF.md)** - Quick command reference for daily operations
-- **[docs/CURRENT_STATE.md](docs/CURRENT_STATE.md)** - Current project state, setup instructions, and file structure
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+**Reference Documentation**:
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System architecture (being refactored)
+- **[docs/API.md](docs/API.md)** - REST and WebSocket API reference
+- **[docs/ROADMAP.md](docs/ROADMAP.md)** - Original roadmap (see IMPLEMENTATION_PLAN.md for current)
+- **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)** - Development guidelines
+- **[docs/QUICKREF.md](docs/QUICKREF.md)** - Quick command reference
+- **[docs/CURRENT_STATE.md](docs/CURRENT_STATE.md)** - Pre-refactor state
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history
 
-**When working on issues**: Always check docs/ROADMAP.md first to understand context and see if related work is tracked.
+**When working on issues**: Check docs/ISSUES_UPDATE_PLAN.md for current priorities and docs/ROADMAP.md for historical context.
 
 ## Using Context7 MCP Server for Latest Documentation
 
@@ -85,6 +113,40 @@ Context7 provides two main tools (use via MCP):
 
 **Remember**: Claude's knowledge cutoff is January 2025. For libraries updated after this date, Context7 provides the most current information.
 
+## Current Implementation Status (2025-10-29)
+
+### ✅ Completed:
+- Security fixes (JWT, auth, API key handling)
+- Database schema and migrations
+- Basic MCP tool integration
+- Gradio UI framework
+- FastAPI server structure
+
+### 🚧 In Progress:
+- **Phase 1**: Environment setup and basic operation
+- **Phase 2**: Refactoring for streaming architecture
+- **Phase 3**: XTTS v2 integration
+
+### ❌ Not Started:
+- Virtual environment setup
+- Ollama configuration
+- Streaming pipeline
+- Voice cloning
+- Real-time audio processing
+
+### 🎯 Target Architecture:
+```
+Voice Input → Faster-Whisper (STT) → Ollama (LLM) → XTTS v2 (TTS) → Audio Output
+                                          ↓
+                                    MCP Tools (local)
+```
+
+### Hardware Optimizations for M3 Max:
+- Use MPS (Metal Performance Shaders) for PyTorch
+- Leverage Neural Engine for Whisper
+- Utilize 64GB unified memory (no VRAM transfers)
+- Target <200ms voice-to-voice latency
+
 ## Architecture
 
 The project follows a modular architecture with clear separation of concerns:
@@ -95,6 +157,48 @@ The project follows a modular architecture with clear separation of concerns:
 - **gui/**: Gradio-based web interface for user interactions
 - **config/**: YAML-based configuration management with environment-specific overrides
 - **scripts/**: Deployment, monitoring, and management utilities
+
+## 🚀 IMMEDIATE NEXT STEPS (Start Here!)
+
+### CURRENT PROGRESS (as of 2025-10-29):
+- ✅ Planning documents created
+- ✅ Virtual environment created (venv/)
+- ⚠️ **NEXT**: Install dependencies and continue Phase 1, Day 1
+
+### CONTINUE FROM HERE:
+```bash
+# 1. Activate virtual environment
+source venv/bin/activate
+
+# 2. Install dependencies with M3 optimizations
+export PYTORCH_ENABLE_MPS_FALLBACK=1
+pip install --upgrade pip setuptools wheel
+
+# Install with Apple Silicon optimizations
+export CFLAGS="-I/opt/homebrew/include"
+export LDFLAGS="-L/opt/homebrew/lib"
+pip install pyaudio
+pip install -r requirements.txt
+
+# 3. Start Ollama (in separate terminal)
+ollama serve
+ollama pull mistral:7b-instruct-v0.2-q4_K_M
+
+# 4. Initialize project
+cp .env.example .env
+python -c "from memory.db_manager import DatabaseManager; DatabaseManager().initialize()"
+
+# 5. Test basic pipeline
+python -m gui.app  # Should start on port 7860
+```
+
+### THEN PROCEED TO:
+- **Phase 1, Day 2**: Fix HTTP client leaks (Issue #7) and database transactions (Issue #6)
+- **Phase 2**: Begin streaming refactor (see IMPLEMENTATION_PLAN.md)
+- **Phase 3**: XTTS v2 integration
+
+### TO TRACK PROGRESS:
+Check the implementation plan to see which phase/day tasks are completed and continue from there.
 
 ## Common Development Commands
 
@@ -782,6 +886,21 @@ sed -i 's/voice_agent.py/streaming_voice_agent.py/g' README.md
 - Memory profiling and optimization during development
 - Database connection pooling and optimistic locking
 - Always maintain rollback capability until system is proven stable
+
+## 📋 EXECUTION CHECKLIST FOR FUTURE SESSIONS
+
+When user says "read CLAUDE.md and proceed with next steps", do this:
+
+1. ✅ Read this file (CLAUDE.md)
+2. ✅ Read `docs/IMPLEMENTATION_PLAN.md` for full roadmap
+3. ✅ Read `docs/ISSUES_UPDATE_PLAN.md` for priorities
+4. ✅ Check "CURRENT PROGRESS" section above
+5. ✅ Continue from "CONTINUE FROM HERE" section
+6. ✅ Follow the implementation plan phase by phase
+
+**Current Focus**: Get basic system operational (Phase 1), then add streaming (Phase 2-3)
+
+**End Goal**: <200ms voice-to-voice latency with XTTS v2, fully local on M3 Max
 
 ## GitHub Repository and CI/CD
 

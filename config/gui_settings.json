@@ -1,0 +1,16 @@
+{
+  "whisper_model": "medium",
+  "ollama_model": "llama3.2:3b",
+  "tts_model": "tts_models/en/ljspeech/tacotron2-DDC",
+  "openai_api_key": "",
+  "voice_model": "tts_models/multilingual/multi-dataset/xtts_v2",
+  "voice_enabled": true,
+  "auto_save": true,
+  "max_context_length": 20,
+  "theme": "Light",
+  "language": "English",
+  "speech_rate": 150,
+  "speech_volume": 0.9,
+  "performance_logging": true,
+  "animations": true
+}
