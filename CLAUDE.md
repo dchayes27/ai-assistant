@@ -6,6 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a comprehensive local AI assistant with voice capabilities, persistent memory, and MCP (Model Context Protocol) integration. The system provides both GUI and API interfaces for interacting with AI models running locally via Ollama.
 
+## Key Documentation
+
+For comprehensive understanding of the system, refer to these documentation files:
+
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed system architecture, component interactions, data models, and technology decisions
+- **[docs/API.md](docs/API.md)** - Complete REST and WebSocket API reference with examples
+- **[docs/ROADMAP.md](docs/ROADMAP.md)** - Implementation roadmap, completed work, and GitHub issues for remaining tasks
+- **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Common issues, solutions, and debugging guides
+- **[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)** - Development guidelines, code standards, and PR process
+- **[docs/QUICKREF.md](docs/QUICKREF.md)** - Quick command reference for daily operations
+- **[docs/CURRENT_STATE.md](docs/CURRENT_STATE.md)** - Current project state, setup instructions, and file structure
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+
+**When working on issues**: Always check docs/ROADMAP.md first to understand context and see if related work is tracked.
+
 ## Architecture
 
 The project follows a modular architecture with clear separation of concerns:
